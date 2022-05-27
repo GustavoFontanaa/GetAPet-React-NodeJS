@@ -1,6 +1,8 @@
 const User = require('../models/User');
 const bcrypt = require('bcrypt');
+const jwt = require('jsonwebtoken');
 const createUserToken = require('../helpers/create-user-token');
+const getToken = require('../helpers/get-token');
 
 module.exports = class UserController {
   static async register(req, res) {
@@ -91,9 +93,7 @@ module.exports = class UserController {
     const checkPassword = await bcrypt.compare(password, user.password);
 
     if (!checkPassword) {
-      res
-        .status(422)
-        .json({ message: 'Senha inválida!' });
+      res.status(422).json({ message: 'Senha inválida!' });
       return;
     }
 
@@ -101,17 +101,22 @@ module.exports = class UserController {
   }
 
   static async checkUser(req, res) {
-    
-    let currentUser 
+    let currentUser;
 
-    console.log(req.headers.authorization) 
-    
-    if(req.headers.authorization) {
+    console.log(req.headers.authorization);
 
+    if (req.headers.authorization) {
+
+      const token = getToken(req)
+      const decoded = jwt.verify(token, 'nossosecret')
+
+      currentUser = await User.findById(decoded.id)
+
+      currentUser.password = undefined
     } else {
-      currentUser = null
+      currentUser = null;
     }
 
-    res.status(200).send(currentUser)
+    res.status(200).send(currentUser);
   }
 };
