@@ -1,39 +1,40 @@
-const User = require("../models/User");
-const bcrypt = require("bcrypt");
+const User = require('../models/User');
+const bcrypt = require('bcrypt');
+const createUserToken = require('../helpers/create-user-token');
 
 module.exports = class UserController {
   static async register(req, res) {
     const { name, email, phone, password, confirmpassword } = req.body;
 
     if (!name) {
-      res.status(422).json({ message: "O nome é obrigatório" });
+      res.status(422).json({ message: 'O nome é obrigatório' });
       return;
     }
 
     if (!email) {
-      res.status(422).json({ message: "O e-mail é obrigatório" });
+      res.status(422).json({ message: 'O e-mail é obrigatório' });
       return;
     }
 
     if (!phone) {
-      res.status(422).json({ message: "O telefone é obrigatório" });
+      res.status(422).json({ message: 'O telefone é obrigatório' });
       return;
     }
 
     if (!password) {
-      res.status(422).json({ message: "A senha é obrigatória" });
+      res.status(422).json({ message: 'A senha é obrigatória' });
       return;
     }
 
     if (!confirmpassword) {
-      res.status(422).json({ message: "A confirmação de senha é obrigatória" });
+      res.status(422).json({ message: 'A confirmação de senha é obrigatória' });
       return;
     }
 
     if (password !== confirmpassword) {
       res
         .status(422)
-        .json({ message: "A senha e a confirmação de senha devem ser iguais" });
+        .json({ message: 'A senha e a confirmação de senha devem ser iguais' });
       return;
     }
 
@@ -41,7 +42,7 @@ module.exports = class UserController {
     const userExists = await User.findOne({ email: email });
 
     if (userExists) {
-      res.status(422).json({ message: "Por favor, utilize outro e-mail" });
+      res.status(422).json({ message: 'Por favor, utilize outro e-mail' });
       return;
     }
 
@@ -59,7 +60,7 @@ module.exports = class UserController {
 
     try {
       const newUser = await user.save();
-      res.status(201).json({ message: "Usuário criado", newUser });
+      await createUserToken(newUser, req, res);
     } catch (error) {
       res.status(500).json({ message: error });
     }
